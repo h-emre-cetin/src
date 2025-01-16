@@ -12,6 +12,8 @@ namespace PhoneBookAPI.Infrastructure.Data
         public MongoDbContext(MongoDbSettings settings)
         {
             _settings = settings;
+            BsonDefaults.GuidRepresentation = GuidRepresentation.Standard;
+            
             var client = new MongoClient(_settings.ConnectionString);
             _database = client.GetDatabase(_settings.DatabaseName);
         }

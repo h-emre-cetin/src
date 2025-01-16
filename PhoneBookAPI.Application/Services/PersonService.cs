@@ -26,7 +26,12 @@ namespace PhoneBookAPI.Application.Services
             {
                 FirstName = createPersonDto.FirstName,
                 LastName = createPersonDto.LastName,
-                Company = createPersonDto.Company
+                Company = createPersonDto.Company,
+                ContactInformation = createPersonDto.ContactInformation.Select(ci => new ContactInfo
+                {
+                    Type = ci.Type,
+                    Value = ci.Value
+                }).ToList()
             };
 
             await _personRepository.AddAsync(person);
@@ -54,6 +59,12 @@ namespace PhoneBookAPI.Application.Services
             person.FirstName = updatePersonDto.FirstName;
             person.LastName = updatePersonDto.LastName;
             person.Company = updatePersonDto.Company;
+            person.ContactInformation = updatePersonDto.ContactInformation.Select(ci => new ContactInfo
+            {
+                Type = ci.Type,
+                Value = ci.Value,
+                IsActive = true
+            }).ToList();
 
             await _personRepository.UpdateAsync(person);
             await InvalidateLocationStatsCache();
