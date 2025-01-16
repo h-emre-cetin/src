@@ -8,7 +8,13 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="8.0.8" />
-    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.4.0" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="7.2.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\PhoneBookAPI.Core\PhoneBookAPI.Core.csproj" />
+    <ProjectReference Include="..\PhoneBookAPI.Infrastructure\PhoneBookAPI.Infrastructure.csproj" />
+    <ProjectReference Include="..\PhoneBookAPI.Application\PhoneBookAPI.Application.csproj" />
   </ItemGroup>
 
 </Project>

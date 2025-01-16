@@ -1,9 +1,42 @@
+using Microsoft.AspNetCore.Builder;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Configuration;
+using PhoneBookAPI.Infrastructure.Data;
+using PhoneBookAPI.Infrastructure.Data.Configurations;
+using PhoneBookAPI.Infrastructure.Repositories;
+using PhoneBookAPI.Infrastructure.Cache;
+using PhoneBookAPI.Application.Services;
+using PhoneBookAPI.Core.Interfaces;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+builder.Services.AddControllers();
+
+// Configure MongoDB
+var mongoDbSettings = builder.Configuration.GetSection("MongoDbSettings").Get<MongoDbSettings>();
+builder.Services.AddSingleton(mongoDbSettings);
+builder.Services.AddSingleton<MongoDbContext>();
+builder.Services.AddScoped<IPersonRepository, PersonRepository>();
+
+// Configure Redis
+var redisConnectionString = builder.Configuration.GetValue<string>("RedisSettings:ConnectionString");
+builder.Services.AddSingleton<ICacheService>(new RedisCacheService(redisConnectionString));
+
+// Configure Application Services
+builder.Services.AddScoped<IPersonService, PersonService>();
+
+// Configure Swagger
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(c =>
+{
+    c.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo
+    {
+        Title = "PhoneBook API",
+        Version = "v1",
+        Description = "A simple phone book API with MongoDB and Redis"
+    });
+});
 
 var app = builder.Build();
 
@@ -15,30 +48,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-
-var summaries = new[]
-{
-    "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-};
-
-app.MapGet("/weatherforecast", () =>
-{
-    var forecast =  Enumerable.Range(1, 5).Select(index =>
-        new WeatherForecast
-        (
-            DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-            Random.Shared.Next(-20, 55),
-            summaries[Random.Shared.Next(summaries.Length)]
-        ))
-        .ToArray();
-    return forecast;
-})
-.WithName("GetWeatherForecast")
-.WithOpenApi();
+app.UseAuthorization();
+app.MapControllers();
 
 app.Run();
-
-record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
-{
-    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
-}
